@@ -9,14 +9,20 @@ import { useEffect, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 
 export default function Body() {
+  //================================== Body's States & Variables ==================================
+
+  // Load task data from localStorage or initialize an empty array
   const [taskData, setTaskData] = useState(() => {
     const storedTasks = localStorage.getItem("Tasks");
     return storedTasks ? JSON.parse(storedTasks) : [];
   });
 
+  // UI state for sorting and toggling views
   const [isAllTaskClick, setAllTaskClick] = useState(false);
-  const [isSortByDeadline, setSortedByDeadline] = useState(false);
-  const [isSortedByImportance, setSortedByImportance] = useState(false);
+  const [isSortByDeadline, setIsSortedByDeadline] = useState(false);
+  const [isSortedByImportance, setIsSortedByImportance] = useState(false);
+
+  // Template for a new task
   const newTask = {
     title: "new task",
     desc: "description",
@@ -25,12 +31,23 @@ export default function Body() {
     isImportant: false,
   };
 
+  // Style the selected sort in <li>
+  const selectedSortStyle = {
+    color: "black",
+    backgroundColor: "wheat",
+    borderRadius: "0.6rem",
+  };
+
+  //================================== Body Event Handlers ==================================
+
+  //Add a new task to the list
   const handleAddNewTask = (e) => {
     e.preventDefault();
     setTaskData([...taskData, { id: taskData.length + 1, ...newTask }]);
     console.log(taskData);
   };
 
+  // Update a task field (e.g., title, description, importance)
   const handleTaskUpdate = (taskId, updateField) => {
     setTaskData((prevTasks) =>
       prevTasks.map((task) =>
@@ -39,6 +56,7 @@ export default function Body() {
     );
   };
 
+  // Update the deadline for a specific task
   const updateTaskDeadline = (taskId, newDate) => {
     setTaskData((prevTasks) =>
       prevTasks.map((task) =>
@@ -47,40 +65,51 @@ export default function Body() {
     );
   };
 
+  // Remove a task from the list and reassing IDs
   const removeTask = (taskId) => {
-    setTaskData([...taskData.filter((item) => item.id != taskId)]);
-  };
-  const sortTasks = () => {
-    if (isSortByDeadline) {
-      setTaskData((prevTasks) => {
-        return [...prevTasks].sort((a, b) => {
-          const dateA = a.deadline ? new Date(a.deadline) : new Date(0);
-          const dateB = b.deadline ? new Date(b.deadline) : new Date(0);
-          return dateA - dateB;
-        });
-      });
-      console.log("deadline");
-    } else if (isSortedByImportance) {
-      setTaskData((prevTasks) => {
-        return [...prevTasks].sort((a, b) => {
-          return b.isImportant - a.isImportant;
-        });
-      });
-      console.log("important");
-    } else {
-      setTaskData((prevTasks) => {
-        return [...prevTasks].sort((a, b) => {
-          return a.id - b.id;
-        });
-      });
-      console.log("normal");
-    }
+    setTaskData(
+      (prevTasks) =>
+        prevTasks
+          .filter((item) => item.id !== taskId) // Remove the task
+          .map((task, index) => ({ ...task, id: index + 1 })) // Reassign sequential IDs
+    );
   };
 
+  // Sort tasks by deadline (earliest first, undefine is also first)
+  const sortByDeadline = (tasks) => {
+    return tasks.sort((a, b) => {
+      const dateA = a.deadline ? new Date(a.deadline) : new Date(0);
+      const dateB = b.deadline ? new Date(b.deadline) : new Date(0);
+      return dateA - dateB;
+    });
+  };
+
+  // Sort tasks by importance
+  const sortByImportance = (tasks) => {
+    return tasks.sort((a, b) => b.isImportant - a.isImportant);
+  };
+
+  // Apply sorting based on the selected criteria
+  const sortTasks = () => {
+    let sortedTasks = [...taskData];
+    if (isSortByDeadline) {
+      sortedTasks = sortByDeadline(sortedTasks);
+    } else if (isSortedByImportance) {
+      sortedTasks = sortByImportance(sortedTasks);
+    } else {
+      sortedTasks = sortedTasks.sort((a, b) => a.id - b.id); // Default sort by id
+    }
+    setTaskData(sortedTasks);
+  };
+
+  //================================== useEffects ==================================
+
+  // Re-sort whenever the sorting state changes
   useEffect(() => {
     sortTasks(); // Re-sort whenever the sorting state changes
   }, [isSortByDeadline, isSortedByImportance]);
 
+  // Store updated task list in localStorage
   useEffect(() => {
     localStorage.setItem("Tasks", JSON.stringify(taskData));
   }, [taskData]);
@@ -135,36 +164,22 @@ export default function Body() {
           >
             <li
               onClick={() => {
-                setSortedByDeadline((prev) => !prev);
-                setSortedByImportance(false);
+                setIsSortedByDeadline((prev) => !prev);
+                setIsSortedByImportance(false);
                 setAllTaskClick((prev) => !prev);
               }}
-              style={
-                isSortByDeadline
-                  ? {
-                      color: "black",
-                      backgroundColor: "wheat",
-                      borderRadius: "0.6rem",
-                    }
-                  : { color: "black" }
-              }
+              style={isSortByDeadline ? selectedSortStyle : { color: "black" }}
             >
               Sort By Deadline
             </li>
             <li
               onClick={() => {
-                setSortedByImportance((prev) => !prev);
-                setSortedByDeadline(false);
+                setIsSortedByImportance((prev) => !prev);
+                setIsSortedByDeadline(false);
                 setAllTaskClick((prev) => !prev);
               }}
               style={
-                isSortedByImportance
-                  ? {
-                      color: "black",
-                      backgroundColor: "wheat",
-                      borderRadius: "0.6rem",
-                    }
-                  : { color: "black" }
+                isSortedByImportance ? selectedSortStyle : { color: "black" }
               }
             >
               Sort By Importance
@@ -194,34 +209,42 @@ export default function Body() {
   );
 }
 
+//================================== Child Component : Task ==================================
+
 function Task({ data, onEdit, updateDeadline, onRemove }) {
+  //================================== Task's States & Variables ==================================
+
+  // Task-specific state for UI interactions
   const [datePickerState, setDatePickerState] = useState(false);
   const [isRightClicked, setRightClick] = useState(false);
 
+  //================================== Task's Event Handlers ==================================
+
+  // Handle date-picker when clicked (if task is not completed)
   function handleDateChanging() {
     if (!data.complete) {
       setDatePickerState((prev) => !prev);
     }
   }
 
+  // Handle text input changes (title & description)
   const handleInput = (e) => {
     onEdit(data.id, { [e.target.name]: e.target.value }); // Update state
   };
 
+  // Handle task completion status
   const handleCircleClick = (e) => {
     e.preventDefault();
     onEdit(data.id, { complete: !data.complete }); // Pass updated value to parent state
   };
 
+  // Handle right-click menu toggle
   const handleRightClick = (e) => {
     e.preventDefault();
-    if (isRightClicked) {
-      setRightClick(false);
-    } else {
-      setRightClick(true);
-    }
+    setRightClick((prev) => !prev);
   };
 
+  // Toggle task importance status
   const handleImportance = (e) => {
     e.preventDefault();
     onEdit(data.id, { isImportant: !data.isImportant }); // Pass updated value to parent state
@@ -246,8 +269,24 @@ function Task({ data, onEdit, updateDeadline, onRemove }) {
             type="text"
             value={data.title}
             onChange={handleInput}
+            style={{
+              color:
+                data.deadline && new Date(data.deadline) < new Date()
+                  ? "red"
+                  : "black",
+            }}
           />
-          <textarea name="desc" value={data.desc} onChange={handleInput} />
+          <textarea
+            name="desc"
+            value={data.desc}
+            onChange={handleInput}
+            style={{
+              color:
+                data.deadline && new Date(data.deadline) < new Date()
+                  ? "red"
+                  : "black",
+            }}
+          />
         </div>
       </div>
       <div className="task-right">
