@@ -63,7 +63,9 @@ body {
   margin: 0;
   padding: 0 !important;
   max-width: none !important;
+  min-height: 100vh;
 }
+
 .header,
 .list-container,
 .all-tasks > img {
@@ -146,6 +148,7 @@ textarea {
 .task-container {
   width: 100%;
   padding: 1.5rem 0;
+  flex: 1;
 }
 
 .task,
@@ -213,6 +216,9 @@ li:hover {
   background-color: wheat;
   border-radius: 0.6rem;
   cursor: pointer;
+}
+.empty-div {
+  flex: 1;
 }
 
 /* ===================== Add Task Style ===================== */
