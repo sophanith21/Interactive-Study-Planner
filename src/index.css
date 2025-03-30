@@ -81,6 +81,7 @@ body {
   padding: 0.5% 1% 0.5% 1.5%;
   margin-left: 5%;
   gap: 0.5rem;
+  cursor: pointer;
 }
 
 .list-container > ul {
@@ -111,6 +112,9 @@ textarea:focus {
 
 input {
   font-weight: bold;
+  font-size: larger;
+}
+textarea {
   font-size: large;
 }
 
@@ -120,6 +124,10 @@ input {
   flex-direction: column;
   align-items: flex-start;
   gap: 2.5rem;
+}
+
+.task-text {
+  gap: 0.5rem;
 }
 
 .task-container {
@@ -183,10 +191,6 @@ input {
 .task-left {
   justify-items: flex-start;
   gap: 1.5rem;
-}
-
-.task-text {
-  gap: 0.5rem;
 }
 
 .task ul {
