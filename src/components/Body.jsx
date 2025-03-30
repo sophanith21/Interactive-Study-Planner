@@ -6,6 +6,7 @@ import chevronDown_Dark from "../assets/Chevron down_black.svg";
 import { formatDistanceToNow } from "date-fns";
 import DatePicker from "react-datepicker";
 import { useEffect, useState } from "react";
+import * as ContextMenu from "@radix-ui/react-context-menu";
 import "react-datepicker/dist/react-datepicker.css";
 
 export default function Body() {
@@ -216,7 +217,6 @@ function Task({ data, onEdit, updateDeadline, onRemove }) {
 
   // Task-specific state for UI interactions
   const [datePickerState, setDatePickerState] = useState(false);
-  const [isRightClicked, setRightClick] = useState(false);
 
   //================================== Task's Event Handlers ==================================
 
@@ -238,87 +238,80 @@ function Task({ data, onEdit, updateDeadline, onRemove }) {
     onEdit(data.id, { complete: !data.complete }); // Pass updated value to parent state
   };
 
-  // Handle right-click menu toggle
-  const handleRightClick = (e) => {
-    e.preventDefault();
-    setRightClick((prev) => !prev);
-  };
-
-  // Toggle task importance status
-  const handleImportance = (e) => {
-    e.preventDefault();
-    onEdit(data.id, { isImportant: !data.isImportant }); // Pass updated value to parent state
-  };
-
   return (
-    <div
-      className={data.complete ? "task-completed" : "task"}
-      id={data.isImportant ? "important" : ""}
-      onContextMenu={handleRightClick}
-      onClick={() => setRightClick(false)}
-    >
-      <div className="task-left">
-        <img
-          src={data.complete ? circle_click : circle}
-          alt="Done"
-          onClick={handleCircleClick}
-        />
-        <div className="task-text">
-          <input
-            name="title"
-            type="text"
-            value={data.title}
-            onChange={handleInput}
-            style={{
-              color:
-                data.deadline && new Date(data.deadline) < new Date()
-                  ? "red"
-                  : "black",
-            }}
-          />
-          <textarea
-            name="desc"
-            value={data.desc}
-            onChange={handleInput}
-            style={{
-              color:
-                data.deadline && new Date(data.deadline) < new Date()
-                  ? "red"
-                  : "black",
-            }}
-          />
-        </div>
-      </div>
-      <div className="task-right">
-        <h3 onClick={handleDateChanging}>
-          {!datePickerState &&
-            (data.deadline
-              ? formatDistanceToNow(new Date(data.deadline), {
-                  addSuffix: true,
-                })
-              : "No deadline")}
-        </h3>
-        <h3>
-          {datePickerState && !data.complete && (
-            <DatePicker
-              name="deadline"
-              showTimeSelect
-              selected={data.deadline ? new Date(data.deadline) : null}
-              onChange={(e) => updateDeadline(data.id, e.toISOString())}
-              onClickOutside={() => setDatePickerState(false)}
-              onSelect={() => setDatePickerState(false)}
+    <ContextMenu.Root>
+      <ContextMenu.Trigger asChild>
+        <div
+          className={data.complete ? "task-completed" : "task"}
+          id={data.isImportant ? "important" : ""}
+        >
+          <div className="task-left">
+            <img
+              src={data.complete ? circle_click : circle}
+              alt="Done"
+              onClick={handleCircleClick}
             />
-          )}
-        </h3>
-      </div>
-      {isRightClicked && (
-        <ul>
-          <li onClick={handleImportance}>
-            {data.isImportant ? "Set as Unimportant" : "Set as Important"}
-          </li>
-          <li onClick={() => onRemove(data.id)}>Delete Task</li>
-        </ul>
-      )}
-    </div>
+            <div className="task-text">
+              <input
+                name="title"
+                type="text"
+                value={data.title}
+                onChange={handleInput}
+                style={{
+                  color:
+                    data.deadline && new Date(data.deadline) < new Date()
+                      ? "red"
+                      : "black",
+                }}
+              />
+              <textarea
+                name="desc"
+                value={data.desc}
+                onChange={handleInput}
+                style={{
+                  color:
+                    data.deadline && new Date(data.deadline) < new Date()
+                      ? "red"
+                      : "black",
+                }}
+              />
+            </div>
+          </div>
+          <div className="task-right">
+            <h3 onClick={handleDateChanging}>
+              {!datePickerState &&
+                (data.deadline
+                  ? formatDistanceToNow(new Date(data.deadline), {
+                      addSuffix: true,
+                    })
+                  : "No deadline")}
+            </h3>
+            <h3>
+              {datePickerState && !data.complete && (
+                <DatePicker
+                  name="deadline"
+                  showTimeSelect
+                  selected={data.deadline ? new Date(data.deadline) : null}
+                  onChange={(e) => updateDeadline(data.id, e.toISOString())}
+                  onClickOutside={() => setDatePickerState(false)}
+                  onSelect={() => setDatePickerState(false)}
+                />
+              )}
+            </h3>
+          </div>
+        </div>
+      </ContextMenu.Trigger>
+
+      <ContextMenu.Content className="context-menu">
+        <ContextMenu.Item
+          onSelect={() => onEdit(data.id, { isImportant: !data.isImportant })}
+        >
+          {data.isImportant ? "[1] Set as Unimportant" : "[1] Set as Important"}
+        </ContextMenu.Item>
+        <ContextMenu.Item onSelect={() => onRemove(data.id)}>
+          [2] Delete Task
+        </ContextMenu.Item>
+      </ContextMenu.Content>
+    </ContextMenu.Root>
   );
 }
