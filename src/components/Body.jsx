@@ -257,28 +257,20 @@ function Task({ data, onEdit, updateDeadline, onRemove }) {
                 type="text"
                 value={data.title}
                 onChange={handleInput}
-                style={{
-                  color:
-                    data.deadline && new Date(data.deadline) < new Date()
-                      ? "red"
-                      : "black",
-                }}
               />
-              <textarea
-                name="desc"
-                value={data.desc}
-                onChange={handleInput}
-                style={{
-                  color:
-                    data.deadline && new Date(data.deadline) < new Date()
-                      ? "red"
-                      : "black",
-                }}
-              />
+              <textarea name="desc" value={data.desc} onChange={handleInput} />
             </div>
           </div>
           <div className="task-right">
-            <h3 onClick={handleDateChanging}>
+            <h3
+              onClick={handleDateChanging}
+              style={{
+                color:
+                  data.deadline && new Date(data.deadline) < new Date()
+                    ? "red"
+                    : "black",
+              }}
+            >
               {!datePickerState &&
                 (data.deadline
                   ? formatDistanceToNow(new Date(data.deadline), {
